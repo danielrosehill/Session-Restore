@@ -17,7 +17,7 @@ open side by side in Konsole on KDE Plasma. It may not suit other setups.
 | `restore-recent-sessions` | Reopen the last N sessions, or picked ones, on purpose |
 | `choose-sessions-to-restore` | A menu: tick sessions with space (crash losses marked), then pick one Konsole split (default) or a Konsole each |
 
-Both use one script, `scripts/session_restore.py`:
+All three use one script, `scripts/session_restore.py`:
 
 ```bash
 python3 scripts/session_restore.py list                     # the most recent crash burst
