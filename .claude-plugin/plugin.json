@@ -1,6 +1,6 @@
 {
   "name": "session-restore",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Reopen Claude Code sessions lost when the terminal crashed: detects the sessions that died together, then resumes each in its own repo in one Konsole window of split panes (or tabs, or separate windows). Also restores the last N sessions, or ones picked from a menu.",
   "author": {
     "name": "Daniel Rosehill",

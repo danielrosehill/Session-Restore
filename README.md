@@ -54,6 +54,12 @@ python3 scripts/session_restore.py list --last 12 --json     # menu data: repo, 
     exit cleanly, and the override isn't saved to your profile.
   - `windows`: one `konsole --separate --workdir DIR -e launcher` per session.
 
+  Konsole is started without the variables a running Claude Code sets for its children
+  (`CLAUDECODE`, `CLAUDE_CODE_CHILD_SESSION`, `CLAUDE_CODE_SESSION_ID`, ...). Restoring
+  from inside a session otherwise passes them to every pane, and the resumed sessions
+  start with "Transcript saving is off — inherited CLAUDE_CODE_CHILD_SESSION marker" (0.2.0
+  had this bug; found 2026-10-25).
+
   Konsole 25.12 refuses `runCommand`/`sendText` over D-Bus ("Security sensitive DBus API
   is disabled in the settings"), so nothing is typed into a running shell.
 

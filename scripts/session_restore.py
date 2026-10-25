@@ -250,9 +250,22 @@ def launcher(run_dir, s, template):
     return path
 
 
+# Set by a running Claude Code for its own children. Run from inside a session (the usual
+# case: the user asks Claude to restore), Konsole and every pane would inherit them, and
+# the resumed sessions start with "Transcript saving is off — inherited
+# CLAUDE_CODE_CHILD_SESSION marker". Seen 2026-10-25 on Claude Code 2.1.310.
+SESSION_MARKERS = ("CLAUDECODE", "CLAUDE_CODE_CHILD_SESSION", "CLAUDE_CODE_SESSION_ID", "CLAUDE_PID",
+                   "CLAUDE_CODE_ENTRYPOINT", "CLAUDE_CODE_EXECPATH", "CLAUDE_CODE_SESSION_ATTENDED",
+                   "CLAUDE_CODE_MESSAGING_SOCKET", "CLAUDE_CODE_MESSAGING_TOKEN", "CLAUDE_EFFORT", "AI_AGENT")
+
+
+def clean_env():
+    return {k: v for k, v in os.environ.items() if k not in SESSION_MARKERS}
+
+
 def launch(argv):
     proc = subprocess.Popen(["konsole", "--separate", *argv], stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL, start_new_session=True)
+                            stderr=subprocess.DEVNULL, start_new_session=True, env=clean_env())
     return proc.pid
 
 
