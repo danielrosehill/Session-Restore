@@ -15,6 +15,7 @@ open side by side in Konsole on KDE Plasma. It may not suit other setups.
 | --- | --- |
 | `restore-lost-sessions` | After a crash: find the sessions that died together and resume them all |
 | `restore-recent-sessions` | Reopen the last N sessions, or picked ones, on purpose |
+| `choose-sessions-to-restore` | A menu: tick sessions with space (crash losses marked), then pick one Konsole split (default) or a Konsole each |
 
 Both use one script, `scripts/session_restore.py`:
 
@@ -24,6 +25,7 @@ python3 scripts/session_restore.py list --minutes 15        # or: active in the 
 python3 scripts/session_restore.py restore                  # reopen them, split panes
 python3 scripts/session_restore.py restore --last 5 --layout tabs
 python3 scripts/session_restore.py restore 16a5574a 2f6863cc --dry-run
+python3 scripts/session_restore.py list --last 12 --json     # menu data: repo, title, in_crash, ...
 ```
 
 ## How it works

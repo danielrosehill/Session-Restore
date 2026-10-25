@@ -122,6 +122,7 @@ def read_session(path):
             seen.append(cwd)
     matching = [c for c in seen if _encode(c) == folder]
     info["cwd"] = matching[0] if matching else (seen[-1] if seen else None)
+    info["last_cwd"] = seen[0] if seen else None  # where it was working last: for labels, not for resuming
     return info
 
 
@@ -190,10 +191,22 @@ def _ago(ts):
     return f"{m}m" if m < 120 else f"{m // 60}h{m % 60:02d}m"
 
 
+def crash_ids(args):
+    """Ids in the most recent crash burst, whatever selection the caller used."""
+    burst = argparse.Namespace(ids=[], minutes=None, last=None, all=args.all, cluster_seconds=args.cluster_seconds)
+    return {s["id"] for s in select(burst)}
+
+
 def cmd_list(args):
     sessions = select(args)
     if args.json:
-        print(json.dumps([{k: v for k, v in s.items() if k != "path"} | {"mtime_iso": datetime.fromtimestamp(s["mtime"], timezone.utc).isoformat()} for s in sessions], indent=2))
+        crashed = crash_ids(args)
+        print(json.dumps([{k: v for k, v in s.items() if k != "path"}
+                          | {"repo": os.path.basename(s["last_cwd"] or s["cwd"] or ""),
+                             "active_ago": _ago(s["mtime"]), "prompt_ago": _ago(s["last_prompt_at"]),
+                             "in_crash": s["id"] in crashed,
+                             "mtime_iso": datetime.fromtimestamp(s["mtime"], timezone.utc).isoformat()}
+                          for s in sessions], indent=2))
         return
     if not sessions:
         print("no matching sessions")
