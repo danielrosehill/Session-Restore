@@ -16,6 +16,10 @@ open side by side in Konsole on KDE Plasma. It may not suit other setups.
 | `restore-lost-sessions` | After a crash: find the sessions that died together and resume them all |
 | `restore-recent-sessions` | Reopen the last N sessions, or picked ones, on purpose |
 | `choose-sessions-to-restore` | A menu: tick sessions with space (crash losses marked), then pick one Konsole split (default) or a Konsole each |
+| `guard-konsole-close` | Prevention: turn Konsole's "close anyway?" prompt back on, test it, keep it on |
+| `setup` | First install on this machine: plugin, checks, close guard |
+| `update` | Update to the latest release, report what changed (`CHANGELOG.md`), apply it |
+| `install-on-lan-host` | Install the plugin and close guard on other Linux machines over SSH |
 
 All three use one script, `scripts/session_restore.py`:
 
@@ -63,6 +67,43 @@ python3 scripts/session_restore.py list --last 12 --json     # menu data: repo, 
   Konsole 25.12 refuses `runCommand`/`sendText` over D-Bus ("Security sensitive DBus API
   is disabled in the settings"), so nothing is typed into a running shell.
 
+## Prevention: Konsole closing without asking
+
+The "crash" this plugin was built for was often not a crash. With nothing in the logs and
+no core dump, the Konsole window had been closed: one click on the title-bar X, which
+sits next to minimise. Konsole normally asks "There are N processes running in M tabs.
+Close anyway?" before it does that. The question disappears for good once "Don't ask
+again" is ticked. The answer lands in `~/.config/konsolerc`:
+
+```ini
+[Notification Messages]
+CloseAllTabs=true      # window close with programs running: closes without asking
+CloseAllEmptyTabs=true # window close with several tabs
+CloseSingleTab=true    # tab close with a program running
+```
+
+`scripts/konsole_close_guard.py` finds and removes these keys:
+
+```bash
+python3 scripts/konsole_close_guard.py check          # exit 1 if prompts are suppressed
+python3 scripts/konsole_close_guard.py fix            # back up konsolerc, remove the keys
+python3 scripts/konsole_close_guard.py install-watch  # systemd user .path unit re-runs fix on every konsolerc change
+python3 scripts/konsole_close_guard.py test           # throwaway window, closed over D-Bus; exit 0 = the prompt blocked it
+```
+
+Verified 2026-10-27 on Konsole 25.12.3. With `CloseAllTabs=true` set, `test` reported the
+window closed silently. After `fix`, the close blocked on the dialog.
+
+Things to know:
+
+- **Konsole reads konsolerc once per process.** A fix applies to Konsole processes
+  started after it. `check` lists older ones by pid. Close and reopen them.
+- The dialog's default button is "Close Window", so Enter still closes.
+- A tab started as `konsole -e claude` isn't protected. Konsole ignores a foreground
+  process named like the tab's own program. Start a shell and run `claude` in it.
+- `test` opens a window. Run it in a nested or headless session if you don't want it on
+  screen.
+
 ## Requirements
 
 - Linux, KDE Konsole (verified on Konsole 25.12.3, Plasma 6.6.6 Wayland, 2026-10-25)
@@ -78,15 +119,22 @@ stacked), `SESSION_RESTORE_CLUSTER_SECONDS`, and `SESSION_RESTORE_COMMAND`, for 
 
 ## Files it writes
 
+`konsole_close_guard.py fix` edits `~/.config/konsolerc` (a backup goes next to it as
+`konsolerc.bak-<time>`) and touches `~/.local/state/konsole-close-guard/last-fix`.
+`install-watch` adds `~/.local/bin/konsole-close-guard` and
+`~/.config/systemd/user/konsole-close-guard.{path,service}`. `uninstall-watch` removes them.
+
 Launcher scripts and the layout or tabs file go in `/tmp/session-restore/<timestamp>-<random>/`.
-They stay there, because Konsole reads them after the script returns. Nothing else is
-changed.
+They stay there, because Konsole reads them after the script returns. The restore changes nothing else.
 
 ## Installation
 
 ```bash
 claude plugins install session-restore@danielrosehill
 ```
+
+Then run the `setup` skill. `update` pulls later releases, and `install-on-lan-host` sets
+up other machines over SSH.
 
 ## License
 
