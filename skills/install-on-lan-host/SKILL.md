@@ -21,6 +21,12 @@ report per host. Nothing here needs root.
                     claude plugin marketplace update danielrosehill;
                     claude plugin install session-restore@danielrosehill || claude plugin update session-restore@danielrosehill"'
    ```
+   If `marketplace add` fails with "its source doesn't match its extraKnownMarketplaces
+   entry", then H's `~/.claude/settings.json` has an old `extraKnownMarketplaces.danielrosehill`
+   entry. Seen 2026-10-27: a `directory` source at a path that no longer existed, so the
+   marketplace never updated and `install` said "not found in marketplace". Back up
+   settings.json, set the entry's source to
+   `{"source": "github", "repo": "danielrosehill/Claude-Code-Plugins"}`, then rerun step 3.
 4. **Close guard:** run the installed copy on H:
    ```bash
    ssh H 'P=$(ls -d ~/.claude/plugins/cache/*/session-restore/*/ | sort -V | tail -1);

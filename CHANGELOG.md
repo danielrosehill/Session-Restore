@@ -3,6 +3,11 @@
 Each entry says what changed and, under **Apply**, anything an existing install has to do
 after updating. The `update` skill reads this file.
 
+## 0.3.1 (2026-10-27)
+
+- `install-on-lan-host`: how to recover when a host's settings hold an old marketplace entry.
+- **Apply:** nothing.
+
 ## 0.3.0 (2026-10-27)
 
 - `scripts/konsole_close_guard.py` and skill `guard-konsole-close`. They find Konsole close
