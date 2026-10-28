@@ -1,6 +1,6 @@
 ---
 name: setup
-description: First-time setup of Session Restore on this machine. Installs the plugin if needed, checks Konsole and Python, turns Konsole's close prompts back on and installs the watch that keeps them on. Use on "set up session restore", "install this", "I just downloaded it".
+description: First-time setup of Session Restore on this machine. Installs the plugin if needed, checks Konsole and Python, turns Konsole's close prompts back on and installs the watches that keep them on and warn of KWin crashes. Use on "set up session restore", "install this", "I just downloaded it".
 ---
 
 # Set up Session Restore
@@ -22,6 +22,8 @@ description: First-time setup of Session Restore on this machine. Installs the p
 3. **Check the restore finds sessions:** `python3 "$P/scripts/session_restore.py" list --last 3`.
 4. **Close guard:** follow the `guard-konsole-close` skill. Run `check`, then `fix`, then
    `install-watch`.
-5. Report: the plugin version installed, whether the close prompts were suppressed and are
-   now on, and that the watch is active (`systemctl --user is-active konsole-close-guard.path`).
+5. **KWin crash watch:** `python3 "$P/scripts/compositor_guard.py" install-watch`. The
+   PreToolUse hook that blocks KWin-crashing commands comes with the plugin; nothing to install.
+6. Report: the plugin version installed, whether the close prompts were suppressed and are
+   now on, and that both watches are active (`systemctl --user is-active konsole-close-guard.path kwin-crash-watch.service`).
    Tell the user to close and reopen any Konsole windows open before the fix.

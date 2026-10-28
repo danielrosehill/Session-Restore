@@ -27,12 +27,13 @@ report per host. Nothing here needs root.
    marketplace never updated and `install` said "not found in marketplace". Back up
    settings.json, set the entry's source to
    `{"source": "github", "repo": "danielrosehill/Claude-Code-Plugins"}`, then rerun step 3.
-4. **Close guard:** run the installed copy on H:
+4. **Close guard and KWin crash watch:** run the installed copy on H:
    ```bash
    ssh H 'P=$(ls -d ~/.claude/plugins/cache/*/session-restore/*/ | sort -V | tail -1);
           python3 "$P/scripts/konsole_close_guard.py" check;
           python3 "$P/scripts/konsole_close_guard.py" fix;
           XDG_RUNTIME_DIR=/run/user/$(id -u) python3 "$P/scripts/konsole_close_guard.py" install-watch;
+          XDG_RUNTIME_DIR=/run/user/$(id -u) python3 "$P/scripts/compositor_guard.py" install-watch;
           python3 "$P/scripts/konsole_close_guard.py" check --json'
    ```
    `XDG_RUNTIME_DIR` lets `systemctl --user` reach the user's systemd over SSH. If the user

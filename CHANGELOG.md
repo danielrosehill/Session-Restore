@@ -3,6 +3,18 @@
 Each entry says what changed and, under **Apply**, anything an existing install has to do
 after updating. The `update` skill reads this file.
 
+## 0.4.0 (2026-10-28)
+
+- `scripts/compositor_guard.py` and a PreToolUse hook (`hooks/hooks.json`). The hook blocks
+  Bash commands that crash or restart KWin: hand-sent `org.kde.kconfig.notify` signals and
+  `kwin_wayland --replace` / `pkill kwin`. A KWin crash leaves Konsole windows damaged, and
+  they segfault minutes later (`docs/incidents/2026-10-28-kwin-crash-from-malformed-kconfig-signal.md`).
+- `compositor_guard.py check` lists Konsole windows at risk after a KWin crash. `culprits`
+  finds the session commands run just before one. `install-watch` adds a desktop warning on every KWin crash.
+- Skill `diagnose-lost-sessions`.
+- **Apply:** run `python3 "$P/scripts/compositor_guard.py" install-watch`. The hook is active
+  in sessions started after the update.
+
 ## 0.3.1 (2026-10-27)
 
 - `install-on-lan-host`: how to recover when a host's settings hold an old marketplace entry.

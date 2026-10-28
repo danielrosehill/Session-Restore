@@ -1,7 +1,7 @@
 {
   "name": "session-restore",
-  "version": "0.3.1",
-  "description": "Reopen Claude Code sessions lost when the terminal crashed: detects the sessions that died together, then resumes each in its own repo in one Konsole window of split panes (or tabs, or separate windows). Also restores the last N sessions, or ones picked from a menu.",
+  "version": "0.4.0",
+  "description": "Reopen Claude Code sessions lost when Konsole crashed or closed, each in its own repo, in one window of split panes (or tabs, or windows). Prevents the losses too: keeps Konsole's close prompt on, blocks commands that crash KWin, and warns when KWin has crashed.",
   "author": {
     "name": "Daniel Rosehill",
     "url": "https://github.com/danielrosehill"
@@ -17,6 +17,8 @@
     "konsole",
     "kde",
     "terminal",
-    "split-view"
+    "split-view",
+    "kwin",
+    "wayland"
   ]
 }

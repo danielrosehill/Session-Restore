@@ -16,12 +16,13 @@ open side by side in Konsole on KDE Plasma. It may not suit other setups.
 | `restore-lost-sessions` | After a crash: find the sessions that died together and resume them all |
 | `restore-recent-sessions` | Reopen the last N sessions, or picked ones, on purpose |
 | `choose-sessions-to-restore` | A menu: tick sessions with space (crash losses marked), then pick one Konsole split (default) or a Konsole each |
+| `diagnose-lost-sessions` | Find out why: a silent close, a Konsole crash, or a KWin crash and the command that caused it |
 | `guard-konsole-close` | Prevention: turn Konsole's "close anyway?" prompt back on, test it, keep it on |
 | `setup` | First install on this machine: plugin, checks, close guard |
 | `update` | Update to the latest release, report what changed (`CHANGELOG.md`), apply it |
 | `install-on-lan-host` | Install the plugin and close guard on other Linux machines over SSH |
 
-All three use one script, `scripts/session_restore.py`:
+The restore skills use one script, `scripts/session_restore.py`:
 
 ```bash
 python3 scripts/session_restore.py list                     # the most recent crash burst
@@ -104,6 +105,31 @@ Things to know:
 - `test` opens a window. Run it in a nested or headless session if you don't want it on
   screen.
 
+## Prevention: KWin crashes
+
+On Plasma Wayland a KWin crash doesn't close Konsole at once. KWin restarts, the windows
+look fine, and then a later repaint (here 13 minutes on, at a click on a tab-bar button)
+segfaults Konsole in `QWaylandShmBackingStore::recreateBackBufferIfNeeded`. Every session in
+the window goes with it. Claude Code sessions that adjust KDE settings can crash KWin
+themselves. On 2026-10-28 a hand-built `dbus-send ... org.kde.kconfig.notify.ConfigChanged
+'dict:string:string:...'` sent `a{ss}` where KConfig expects `a{saay}`, and KWin 6.6.6
+segfaulted 0.24 s later ([incident](docs/incidents/2026-10-28-kwin-crash-from-malformed-kconfig-signal.md)).
+
+`scripts/compositor_guard.py`:
+
+```bash
+python3 scripts/compositor_guard.py check          # last KWin crash; Konsole windows started before it (at risk), exit 1 if any
+python3 scripts/compositor_guard.py culprits       # Bash commands Claude Code sessions ran in the 10 s before the last KWin crash
+python3 scripts/compositor_guard.py install-watch  # systemd user service: critical notification on every KWin crash
+```
+
+The plugin also registers `compositor_guard.py hook` as a PreToolUse hook on Bash. It
+refuses hand-sent `kconfig.notify` signals (use `kwriteconfig6 ... --notify`) and KWin
+restarts (`kwin_wayland --replace`, `pkill kwin`, `kquitapp6 kwin`), and tells the agent why.
+
+After a KWin crash, move the sessions out of every at-risk window into a new one before it
+dies on its own: quit each session, close the window, `session_restore.py restore --minutes 5`.
+
 ## Requirements
 
 - Linux, KDE Konsole (verified on Konsole 25.12.3, Plasma 6.6.6 Wayland, 2026-10-25)
@@ -123,6 +149,8 @@ stacked), `SESSION_RESTORE_CLUSTER_SECONDS`, and `SESSION_RESTORE_COMMAND`, for 
 `konsolerc.bak-<time>`) and touches `~/.local/state/konsole-close-guard/last-fix`.
 `install-watch` adds `~/.local/bin/konsole-close-guard` and
 `~/.config/systemd/user/konsole-close-guard.{path,service}`. `uninstall-watch` removes them.
+`compositor_guard.py install-watch` adds `~/.local/bin/kwin-crash-watch` and
+`~/.config/systemd/user/kwin-crash-watch.service`; its `uninstall-watch` removes them.
 
 Launcher scripts and the layout or tabs file go in `/tmp/session-restore/<timestamp>-<random>/`.
 They stay there, because Konsole reads them after the script returns. The restore changes nothing else.

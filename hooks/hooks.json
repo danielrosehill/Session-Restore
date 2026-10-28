@@ -1,0 +1,17 @@
+{
+  "description": "Block Bash commands known to crash or kill KWin, which takes Konsole windows full of Claude Code sessions down with it",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/compositor_guard.py\" hook",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
